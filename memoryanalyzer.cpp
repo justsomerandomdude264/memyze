@@ -9,6 +9,7 @@ MemoryAnalyzer::MemoryAnalyzer(DWORD processID) : m_pid(processID) {}
 void MemoryAnalyzer::analyze() {
     m_regions.clear();
 
+    // Define the process
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, m_pid);
     if (!hProcess) {
         qCritical() << "Error! Process could not be opened." << m_pid << "Last Error:" << GetLastError();
@@ -19,8 +20,10 @@ void MemoryAnalyzer::analyze() {
     GetSystemInfo(&si);
 
     MEMORY_BASIC_INFORMATION mbi;
+    // Set our pointer to the first possible memory address
     unsigned char* addr = reinterpret_cast<unsigned char*>(si.lpMinimumApplicationAddress);
 
+    // Loop through all adderess till the maximum possible and collect its info
     while (addr < reinterpret_cast<unsigned char*>(si.lpMaximumApplicationAddress)) {
         if (VirtualQueryEx(hProcess, addr, &mbi, sizeof(mbi)) == sizeof(mbi)) {
             if (mbi.State == MEM_COMMIT) {
