@@ -38,7 +38,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    // Move these here to fix "multiple definition" errors
     QVector<ProcessInfo> processCache;
     QCompleter* processCompleter = nullptr;
     QStringListModel* processModel = nullptr;

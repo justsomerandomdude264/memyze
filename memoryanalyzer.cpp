@@ -5,6 +5,7 @@
 
 MemoryAnalyzer::MemoryAnalyzer(DWORD processID) : m_pid(processID) {}
 
+// Core function to analyze
 void MemoryAnalyzer::analyze() {
     m_regions.clear();
 
@@ -49,6 +50,7 @@ void MemoryAnalyzer::analyze() {
     CloseHandle(hProcess);
 }
 
+// Converts data to a json object(maps all memory regions to its type and size)
 QJsonObject MemoryAnalyzer::toJsonObject() const {
     QJsonObject root;
     root["pid"] = static_cast<double>(m_pid);
@@ -66,15 +68,19 @@ QJsonObject MemoryAnalyzer::toJsonObject() const {
     return root;
 }
 
+// Takes the JSON Object and returns data as a formatted JSON string
 QString MemoryAnalyzer::toJsonString() const {
     QJsonDocument doc(toJsonObject());
     return doc.toJson(QJsonDocument::Indented);
 }
 
+// Converts pointer to hexadecimal string
 QString MemoryAnalyzer::toHex(LPCVOID ptr) const {
     return QString("0x%1").arg(reinterpret_cast<uintptr_t>(ptr), 16, 16, QChar('0')).toUpper();
 }
 
+// Windows manages stacks using Guard Page (it is at its tip),
+// so if a guard page is present the region must be a stack.
 bool MemoryAnalyzer::isStack(const MEMORY_BASIC_INFORMATION& mbi) const {
     return (mbi.Protect & PAGE_GUARD);
 }

@@ -17,14 +17,9 @@ struct MemoryRegion {
 class MemoryAnalyzer {
 public:
     explicit MemoryAnalyzer(DWORD processID);
-
-    // Core analysis function
     void analyze();
 
-    // Returns data as a formatted JSON string (Qt style)
     QString toJsonString() const;
-
-    // Returns data as a QJsonObject for further Qt processing
     QJsonObject toJsonObject() const;
 
 private:

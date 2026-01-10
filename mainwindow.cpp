@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Load process list initially
     refreshProcessList();
 
-#   // Connect Live filtering with process input
+    // Connect live filtering with process input
     connect(ui->processNameLineEdit, &QLineEdit::editingFinished,
             this, &MainWindow::resolvePidFromInput);
 
@@ -79,13 +79,13 @@ void updateMemoryInfo(DWORD pid, long &pvt, long &stk, long &img, long &map) {
     MemoryAnalyzer analyzer(pid);
     analyzer.analyze();
 
-    // Reset values to zero at the start
     pvt = 0; stk = 0; img = 0; map = 0;
 
     QJsonObject data = analyzer.toJsonObject();
     QJsonArray regions = data["regions"].toArray();
 
-    for (const QJsonValue &value : regions) {
+    // Compute totals for all memory locations
+    for (const QJsonValue &value : std::as_const(regions)) {
         QJsonObject reg = value.toObject();
         QString type = reg["type"].toString();
         long size = static_cast<long>(reg["size_kb"].toDouble());
@@ -111,15 +111,17 @@ void MainWindow::refreshProcessList()
     processModel->setStringList(items);
 }
 
+// Analyzes the current PID and changes the infoLabel
 void MainWindow::onScanClicked()
 {
     int currentMode = ui->stackedWidget->currentIndex();
 
-    // 1. Resolve the PID based on the active Tab
-    if (currentMode == 0) { // Launch and Observe
+    // Extract PID
+    // Launch and Observe
+    if (currentMode == 0) {
         QString programPath = ui->exePathLineEdit1->text();
         if (programPath.isEmpty()) {
-            ui->infoLabel->setText("Error: No executable selected.");
+            ui->infoLabel->setText("Error! No executable selected.");
             return;
         }
 
@@ -127,28 +129,31 @@ void MainWindow::onScanClicked()
         if (QProcess::startDetached(programPath, QStringList(), QString(), &pid)) {
             currentPID = static_cast<int>(pid);
         } else {
-            ui->infoLabel->setText("Error: Failed to launch program.");
+            ui->infoLabel->setText("Error! Failed to launch program.");
             return;
         }
     }
-    else if (currentMode == 1) { // Search/Observe
+
+    // Observe running program
+    else if (currentMode == 1) {
         resolvePidFromInput();
     }
-    else if (currentMode == 2) { // PID Input
+
+    // Manual PID Input
+    else if (currentMode == 2) {
         currentPID = ui->pidLineEdit->text().toInt();
     }
 
-    // 2. Analyze and Display
+    // Analyze and Display
     if (currentPID > 0) {
         long pvt = 0, stk = 0, img = 0, map = 0;
 
-        // Use your reference-based function
         updateMemoryInfo(static_cast<DWORD>(currentPID), pvt, stk, img, map);
 
-        // Calculate Total
+        // Calculate total
         long total = pvt + stk + img + map;
 
-        // 3. Update infoLabel with your requested format
+        // Update infoLabel
         QString displayContent = QString(
                                      "PID: %1\n"
                                      "PRIVATE: %2 KB\n"
@@ -162,7 +167,7 @@ void MainWindow::onScanClicked()
         ui->infoLabel->setText(displayContent);
 
     } else {
-        ui->infoLabel->setText("Invalid PID. Please select or launch a process.");
+        ui->infoLabel->setText("Invalid PID! Please select or launch a process.");
     }
 }
 
