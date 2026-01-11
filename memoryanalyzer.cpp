@@ -83,7 +83,7 @@ QString MemoryAnalyzer::toHex(LPCVOID ptr) const {
 }
 
 // Windows manages stacks using Guard Page (it is at its tip),
-// so if a guard page is present the region must be a stack.
+// so if a guard page is present, the region must be a stack.
 bool MemoryAnalyzer::isStack(const MEMORY_BASIC_INFORMATION& mbi) const {
     return (mbi.Protect & PAGE_GUARD);
 }

@@ -41,13 +41,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->processNameLineEdit, &QLineEdit::editingFinished,
             this, &MainWindow::resolvePidFromInput);
 
-    // Connect browse button with slot to browse the file
-    connect(ui->browseButton1, &QPushButton::clicked, this, [this]() {
-        browseExe(ui->exePathLineEdit1);
-    });
-
     // Conect Scan button
     connect(ui->scanButton, &QPushButton::clicked, this, &MainWindow::onScanClicked);
+
+    // Add layout to our memeory bar widget
+    memoryBar = new MemoryBar(this);
+    QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui->memoryBarPlaceholder->layout());
+    if (!layout) {
+        layout = new QVBoxLayout(ui->memoryBarPlaceholder);
+        layout->setContentsMargins(0, 0, 0, 0);
+    }
+    layout->addWidget(memoryBar);
+
 
 }
 
@@ -116,58 +121,24 @@ void MainWindow::onScanClicked()
 {
     int currentMode = ui->stackedWidget->currentIndex();
 
-    // Extract PID
-    // Launch and Observe
+    // Idx 0 - Observe running program
     if (currentMode == 0) {
-        QString programPath = ui->exePathLineEdit1->text();
-        if (programPath.isEmpty()) {
-            ui->infoLabel->setText("Error! No executable selected.");
-            return;
-        }
-
-        qint64 pid;
-        if (QProcess::startDetached(programPath, QStringList(), QString(), &pid)) {
-            currentPID = static_cast<int>(pid);
-        } else {
-            ui->infoLabel->setText("Error! Failed to launch program.");
-            return;
-        }
-    }
-
-    // Observe running program
-    else if (currentMode == 1) {
         resolvePidFromInput();
     }
-
-    // Manual PID Input
-    else if (currentMode == 2) {
+    // Idx 1 - Manual PID Input
+    else if (currentMode == 1) {
         currentPID = ui->pidLineEdit->text().toInt();
     }
 
     // Analyze and Display
     if (currentPID > 0) {
         long pvt = 0, stk = 0, img = 0, map = 0;
-
         updateMemoryInfo(static_cast<DWORD>(currentPID), pvt, stk, img, map);
 
-        // Calculate total
-        long total = pvt + stk + img + map;
-
-        // Update infoLabel
-        QString displayContent = QString(
-                                     "PID: %1\n"
-                                     "PRIVATE: %2 KB\n"
-                                     "STACK: %3 KB\n"
-                                     "IMAGE: %4 KB\n"
-                                     "MAPPED: %5 KB\n"
-                                     "------------------\n"
-                                     "TOTAL: %6 KB"
-                                     ).arg(currentPID).arg(pvt).arg(stk).arg(img).arg(map).arg(total);
-
-        ui->infoLabel->setText(displayContent);
-
+        memoryBar->setValues(pvt, stk, img, map);
+        ui->infoLabel->setText(QString("Data from PID: %1").arg(currentPID));
     } else {
-        ui->infoLabel->setText("Invalid PID! Please select or launch a process.");
+        ui->infoLabel->setText("Invalid PID!");
     }
 }
 
@@ -187,15 +158,6 @@ void MainWindow::validatePidInput()
 {
     // TO DO
 }
-
-// Browse functions to select exec file
-void MainWindow::browseExe(QLineEdit* target)
-{
-    QString path = QFileDialog::getOpenFileName(this, "Select Executable", "", "Executables (*.exe)");
-    if (!path.isEmpty()) target->setText(path);
-}
-
-
 
 MainWindow::~MainWindow()
 {

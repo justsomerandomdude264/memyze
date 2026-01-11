@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QStringListModel>
 #include <QCompleter>
+#include "memorybar.h"
 
 struct ProcessInfo {
     QString name;
@@ -29,7 +30,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void browseExe(QLineEdit* target);
     void validatePidInput();
     void resolvePidFromInput();
     void refreshProcessList();
@@ -38,6 +38,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
+    MemoryBar* memoryBar = nullptr;
     QVector<ProcessInfo> processCache;
     QCompleter* processCompleter = nullptr;
     QStringListModel* processModel = nullptr;
