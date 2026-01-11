@@ -6,7 +6,7 @@
 MemoryBar::MemoryBar(QWidget *parent)
     : QWidget(parent)
 {
-    setMinimumHeight(300);
+    setMinimumHeight(230);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 

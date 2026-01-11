@@ -6,41 +6,77 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>500</height>
+    <width>900</width>
+    <height>450</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Memory Analyzer</string>
-  </property>
-  <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="mainVerticalLayout">
 
+  <property name="windowTitle">
+   <string>Memyze</string>
+  </property>
+
+  <!-- ===================== GLOBAL DARK STYLE ===================== -->
+  <property name="styleSheet">
+   <string notr="true">
+    QMainWindow { background-color: #121212; }
+
+    QLabel {
+        font-family: Consolas;
+        color: #e6e6e6;
+    }
+
+    QLabel#methodLabel { color: #9aa0a6; }
+
+    QLineEdit, QComboBox {
+        background-color: #1e1e1e;
+        border: 1px solid #2c2c2c;
+        border-radius: 6px;
+        padding: 6px;
+        color: #e6e6e6;
+        font-family: Consolas;
+    }
+
+    QLineEdit:focus, QComboBox:focus {
+        border: 1px solid #0a84ff;
+    }
+
+    QPushButton {
+        background-color: #0a84ff;
+        color: white;
+        border-radius: 6px;
+        padding: 6px 14px;
+    }
+
+    QPushButton:hover { background-color: #006edc; }
+    QPushButton:pressed { background-color: #005bb5; }
+
+    QFrame[frameShape="4"] { color: #2c2c2c; }
+   </string>
+  </property>
+
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="mainLayout">
+    <property name="spacing"><number>16</number></property>
+    <property name="leftMargin"><number>24</number></property>
+    <property name="topMargin"><number>24</number></property>
+    <property name="rightMargin"><number>24</number></property>
+    <property name="bottomMargin"><number>24</number></property>
+
+    <!-- ===================== TOP CONTROLS ===================== -->
     <item>
-     <layout class="QHBoxLayout" name="topControlsLayout">
+     <layout class="QHBoxLayout">
       <item>
-       <layout class="QVBoxLayout" name="selectorLayout">
+       <layout class="QVBoxLayout">
         <item>
-         <widget class="QLabel" name="label">
-          <property name="font">
-           <font><family>Consolas</family><italic>true</italic></font>
-          </property>
-          <property name="text">
-           <string>Select Input Method -</string>
-          </property>
+         <widget class="QLabel" name="methodLabel">
+          <property name="text"><string>Input Method</string></property>
+          <property name="font"><font><italic>true</italic></font></property>
          </widget>
         </item>
         <item>
          <widget class="QComboBox" name="modeComboBox">
-          <property name="font">
-           <font><family>Consolas</family><bold>true</bold></font>
-          </property>
-          <item>
-           <property name="text"><string>Observe Running Program</string></property>
-          </item>
-          <item>
-           <property name="text"><string>Enter PID</string></property>
-          </item>
+          <item><property name="text"><string>Observe Running Program</string></property></item>
+          <item><property name="text"><string>Enter PID Manually</string></property></item>
          </widget>
         </item>
        </layout>
@@ -48,23 +84,23 @@
 
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
-        <widget class="QWidget" name="page">
-         <layout class="QHBoxLayout" name="layoutPage1">
+        <widget class="QWidget">
+         <layout class="QVBoxLayout">
           <item>
            <widget class="QLineEdit" name="processNameLineEdit">
             <property name="placeholderText">
-             <string>Search process name...</string>
+             <string>Type process name (e.g. chrome.exe)</string>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="page_2">
-         <layout class="QHBoxLayout" name="layoutPage2">
+        <widget class="QWidget">
+         <layout class="QVBoxLayout">
           <item>
            <widget class="QLineEdit" name="pidLineEdit">
             <property name="placeholderText">
-             <string>Enter PID number</string>
+             <string>Enter PID number...</string>
             </property>
            </widget>
           </item>
@@ -75,39 +111,67 @@
 
       <item>
        <widget class="QPushButton" name="scanButton">
-        <property name="minimumSize">
-         <size><width>100</width><height>40</height></size>
-        </property>
-        <property name="font">
-         <font><family>Consolas</family><pointsize>12</pointsize><italic>true</italic><bold>true</bold></font>
-        </property>
-        <property name="text"><string>Scan</string></property>
+        <property name="text"><string>SCAN NOW</string></property>
+        <property name="font"><font><bold>true</bold></font></property>
        </widget>
       </item>
      </layout>
     </item>
 
     <item>
-     <widget class="QLabel" name="infoLabel">
-      <property name="text"><string>Ready to analyze...</string></property>
-      <property name="alignment"><set>Qt::AlignCenter</set></property>
+     <widget class="Line">
+      <property name="orientation"><enum>Qt::Horizontal</enum></property>
      </widget>
     </item>
 
+    <!-- ===================== STATUS ===================== -->
     <item>
-     <widget class="QWidget" name="memoryBarPlaceholder" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      </widget>
+     <widget class="QLabel" name="infoLabel">
+      <property name="text"><string>Ready to Analyze</string></property>
+      <property name="alignment"><set>Qt::AlignCenter</set></property>
+      <property name="font"><font><bold>true</bold></font></property>
+     </widget>
+    </item>
+
+    <!-- ===================== MEMORY GRAPH ===================== -->
+    <item>
+     <widget class="QWidget" name="memoryBarPlaceholder" native="true"/>
+    </item>
+
+    <!-- ===================== COMPACT DELTA TABLE ===================== -->
+    <item>
+     <layout class="QGridLayout" name="deltaGrid">
+      <property name="horizontalSpacing"><number>20</number></property>
+      <property name="verticalSpacing"><number>8</number></property>
+
+      <item row="0" column="1">
+       <widget class="QLabel">
+        <property name="text"><string>Δ CHANGE</string></property>
+        <property name="font"><font><bold>true</bold></font></property>
+        <property name="alignment"><set>Qt::AlignLeft</set></property>
+       </widget>
+      </item>
+
+      <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Total</string></property></widget></item>
+      <item row="1" column="1"><widget class="QLabel" name="totalChangeLabel"/></item>
+
+      <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Private</string></property></widget></item>
+      <item row="2" column="1"><widget class="QLabel" name="pvtChangeLabel"/></item>
+
+      <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Stack</string></property></widget></item>
+      <item row="3" column="1"><widget class="QLabel" name="stkChangeLabel"/></item>
+
+      <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Image</string></property></widget></item>
+      <item row="4" column="1"><widget class="QLabel" name="imgChangeLabel"/></item>
+
+      <item row="5" column="0"><widget class="QLabel"><property name="text"><string>Mapped</string></property></widget></item>
+      <item row="5" column="1"><widget class="QLabel" name="mapChangeLabel"/></item>
+     </layout>
     </item>
 
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar"/>
+
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>

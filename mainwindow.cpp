@@ -6,6 +6,8 @@
 #include <QFileDialog>
 #include <QProcess>
 #include <QRegularExpression>
+#include <QJsonObject>
+#include <QJsonArray>
 #include <utility>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -116,6 +118,22 @@ void MainWindow::refreshProcessList()
     processModel->setStringList(items);
 }
 
+// Update the label to show the changes
+void MainWindow::updateChangeLabel(QLabel* label, long current, long previous) {
+    long diff = current - previous;
+    QString sign = (diff > 0) ? "+" : "";
+    QString color = "black"; // Default for no change
+
+    if (diff > 0) {
+        color = "red";   // Increase
+    } else if (diff < 0) {
+        color = "green"; // Decrease
+    }
+
+    label->setText(QString("%1%2 KB").arg(sign).arg(diff));
+    label->setStyleSheet(QString("color: %1; font-weight: bold; font-family: 'Consolas';").arg(color));
+}
+
 // Analyzes the current PID and changes the infoLabel
 void MainWindow::onScanClicked()
 {
@@ -125,7 +143,7 @@ void MainWindow::onScanClicked()
     if (currentMode == 0) {
         resolvePidFromInput();
     }
-    // Idx 1 - Manual PID Input
+    // Idx 1 - Manual PID input
     else if (currentMode == 1) {
         currentPID = ui->pidLineEdit->text().toInt();
     }
@@ -134,9 +152,23 @@ void MainWindow::onScanClicked()
     if (currentPID > 0) {
         long pvt = 0, stk = 0, img = 0, map = 0;
         updateMemoryInfo(static_cast<DWORD>(currentPID), pvt, stk, img, map);
+        long currentTotal = pvt + stk + img + map;
+
+        if (currentPID != lastAnalyzedPID) {
+            lastStats = {0, 0, 0, 0, 0};
+            lastAnalyzedPID = currentPID;
+        }
+
+        updateChangeLabel(ui->totalChangeLabel, currentTotal, lastStats.total);
+        updateChangeLabel(ui->pvtChangeLabel, pvt, lastStats.pvt);
+        updateChangeLabel(ui->stkChangeLabel, stk, lastStats.stk);
+        updateChangeLabel(ui->imgChangeLabel, img, lastStats.img);
+        updateChangeLabel(ui->mapChangeLabel, map, lastStats.map);
 
         memoryBar->setValues(pvt, stk, img, map);
         ui->infoLabel->setText(QString("Data from PID: %1").arg(currentPID));
+
+        lastStats = {pvt, stk, img, map, currentTotal};
     } else {
         ui->infoLabel->setText("Invalid PID!");
     }
