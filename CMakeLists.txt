@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(memyze VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
@@ -10,21 +9,27 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent)
 
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        memoryanalyzer.h
+        memoryanalyzer.cpp
+        memorybar.h
+        memorybar.cpp
+        portmanager.h
+        portmanager.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(memyze
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        memoryanalyzer.h memoryanalyzer.cpp
-        memorybar.h memorybar.cpp
+
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET memyze APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -44,7 +49,15 @@ else()
     endif()
 endif()
 
-target_link_libraries(memyze PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(memyze PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent)
+
+# Platform-specific libraries
+if(WIN32)
+    target_link_libraries(memyze PRIVATE psapi)
+elseif(UNIX AND NOT APPLE)
+    find_package(Threads REQUIRED)
+    target_link_libraries(memyze PRIVATE Threads::Threads)
+endif()
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

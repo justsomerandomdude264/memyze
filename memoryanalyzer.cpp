@@ -1,89 +1,228 @@
 #include "memoryanalyzer.h"
-#include <psapi.h>
-#include <QDateTime>
+
+#include <QDir>
+#include <QFile>
+#include <QTextStream>
 #include <QDebug>
+#include <fstream>
+#include <sstream>
+#include <unistd.h>
+#include <limits.h>
 
-MemoryAnalyzer::MemoryAnalyzer(DWORD processID) : m_pid(processID) {}
+// Memory Analyzer to well... analyze memory
+// Static functions only.
+// Get the original path of the process
+QString MemoryAnalyzer::getExePath(ProcessID pid)
+{
+    if (pid <= 0) return QString();
 
-// Core function to analyze
-void MemoryAnalyzer::analyze() {
-    m_regions.clear();
+    char buf[PATH_MAX];
+    std::string exePath = "/proc/" + std::to_string(pid) + "/exe";
 
-    // Define the process
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, m_pid);
-    if (!hProcess) {
-        qCritical() << "Error! Process could not be opened." << m_pid << "Last Error:" << GetLastError();
-        return;
+    ssize_t len = readlink(exePath.c_str(), buf, sizeof(buf) - 1);
+    if (len > 0) {
+        buf[len] = '\0';
+        return QString::fromUtf8(buf);
     }
 
-    SYSTEM_INFO si;
-    GetSystemInfo(&si);
+    return QString();
+}
 
-    MEMORY_BASIC_INFORMATION mbi;
-    // Set our pointer to the first possible memory address
-    unsigned char* addr = reinterpret_cast<unsigned char*>(si.lpMinimumApplicationAddress);
+// Get the name of the process through PID
+QString MemoryAnalyzer::getProcessName(ProcessID pid)
+{
+    if (pid <= 0) return QString();
 
-    // Loop through all adderess till the maximum possible and collect its info
-    while (addr < reinterpret_cast<unsigned char*>(si.lpMaximumApplicationAddress)) {
-        if (VirtualQueryEx(hProcess, addr, &mbi, sizeof(mbi)) == sizeof(mbi)) {
-            if (mbi.State == MEM_COMMIT) {
-                QString type = "PRIVATE";
+    QString commPath = QString("/proc/%1/comm").arg(pid);
+    QFile file(commPath);
 
-                if (mbi.Type == MEM_IMAGE) {
-                    type = "IMAGE";
-                } else if (mbi.Type == MEM_MAPPED) {
-                    type = "MAPPED";
-                } else if (isStack(mbi)) {
-                    type = "STACK";
-                } else if (mbi.Type == MEM_PRIVATE) {
-                    type = "PRIVATE";
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        QString name = in.readLine().trimmed();
+        file.close();
+        return name;
+    }
+
+    return QString();
+}
+
+// Analyze ONLY the PID
+ProcessMemorySummary MemoryAnalyzer::analyzeSinglePid(ProcessID pid, bool usePSS)
+{
+    ProcessMemorySummary s;
+    s.pid = pid;
+    s.processName = getProcessName(pid);
+
+    if (pid <= 0) {
+        qWarning() << "Invalid PID:" << pid;
+        return s;
+    }
+
+    // Parse smaps for detailed breakdown
+    std::string smapsPath = "/proc/" + std::to_string(pid) + "/smaps";
+    std::ifstream smaps(smapsPath);
+
+    if (smaps.is_open()) {
+        std::string line;
+        std::string currentPath;
+        std::string currentPerms;
+
+        while (std::getline(smaps, line)) {
+            if (line.empty()) continue;
+
+            // Check if this is a memory region header (has address range)
+            if (line.find('-') != std::string::npos) {
+                // Parse the header line:
+                // address range perms offset dev inode pathname
+                std::istringstream iss(line);
+                std::string range, perms, offset, dev, inode;
+                iss >> range >> perms >> offset >> dev >> inode;
+
+                currentPerms = perms;
+                currentPath.clear();
+
+                // Get the rest of the line as the path
+                std::string remaining;
+                if (std::getline(iss, remaining)) {
+                    currentPath = remaining;
+                    size_t start = currentPath.find_first_not_of(" \t"); // Trim leading whitespace
+                    if (start != std::string::npos) {
+                        currentPath = currentPath.substr(start);
+                    } else {
+                        currentPath.clear();
+                    }
                 }
-
-                m_regions.append({
-                    type,
-                    toHex(mbi.BaseAddress),
-                    static_cast<long>(mbi.RegionSize / 1024)
-                });
             }
-            addr += mbi.RegionSize;
-        } else {
-            break;
+            // Use PSS for multiple processes to avoid double-counting, RSS for single process
+            else if ((usePSS && line.find("Pss:") == 0) || (!usePSS && line.find("Rss:") == 0)) {
+                std::istringstream iss(line);
+                std::string label;
+                long memKB;
+                std::string unit;
+                iss >> label >> memKB >> unit;
+
+                if (memKB <= 0) continue;
+
+                QString qpath = QString::fromStdString(currentPath).trimmed();
+
+                // Categorize based on the path and permissions
+                if (qpath.contains("[stack")) {
+                    s.stk += memKB;
+                } else if (qpath.endsWith(".so") || qpath.contains("/lib") ||
+                           qpath.contains(".so.") || qpath.startsWith("/usr/lib") ||
+                           qpath.startsWith("/lib")) {
+                    s.img += memKB;
+                } else if (qpath.isEmpty() || qpath == "[heap]" || qpath == "[anon]") {
+                    s.pvt += memKB;
+                } else if (!qpath.isEmpty() && !qpath.startsWith("[")) {
+                    // Files that are memory mapped
+                    s.map += memKB;
+                } else {
+                    // Other anonymous mappings
+                    s.pvt += memKB;
+                }
+            }
+        }
+        smaps.close();
+        s.total = s.pvt + s.stk + s.img + s.map;
+
+        if (s.total > 0) {
+            return s;
         }
     }
-    CloseHandle(hProcess);
-}
 
-// Converts data to a json object(maps all memory regions to its type and size)
-QJsonObject MemoryAnalyzer::toJsonObject() const {
-    QJsonObject root;
-    root["pid"] = static_cast<double>(m_pid);
-    root["timestamp"] = QDateTime::currentSecsSinceEpoch();
+    // Fallback to /proc/[pid]/status if smaps failed
+    std::string statusPath = "/proc/" + std::to_string(pid) + "/status";
+    std::ifstream status(statusPath);
 
-    QJsonArray regionsArray;
-    for (const auto& region : m_regions) {
-        QJsonObject regionObj;
-        regionObj["type"] = region.type;
-        regionObj["base"] = region.base;
-        regionObj["size_kb"] = static_cast<double>(region.size_kb);
-        regionsArray.append(regionObj);
+    if (status.is_open()) {
+        std::string line;
+        while (std::getline(status, line)) {
+            if (line.find("VmRSS:") == 0) {
+                std::istringstream iss(line);
+                std::string label;
+                long rssKB;
+                iss >> label >> rssKB;
+                s.pvt = rssKB;
+                s.total = rssKB;
+                break;
+            }
+        }
+        status.close();
     }
-    root["regions"] = regionsArray;
-    return root;
+
+    return s;
 }
 
-// Takes the JSON Object and returns data as a formatted JSON string
-QString MemoryAnalyzer::toJsonString() const {
-    QJsonDocument doc(toJsonObject());
-    return doc.toJson(QJsonDocument::Indented);
+// Analyze entire application
+ProcessMemorySummary MemoryAnalyzer::analyzeApplication(ProcessID rootPid, bool usePSS)
+{
+    if (rootPid <= 0) {
+        qWarning() << "Invalid root PID:" << rootPid;
+        return ProcessMemorySummary();
+    }
+
+    QList<ProcessID> pids = findRelatedPids(rootPid);
+
+    ProcessMemorySummary total;
+    total.pid = rootPid;
+
+    QString rootName = getProcessName(rootPid);
+    total.processName = rootName.isEmpty() ? QString("PID %1").arg(rootPid)
+                                           : QString("%1 (Group)").arg(rootName);
+
+    for (ProcessID p : std::as_const(pids)) {
+        // Use PSS to avoid counting shared libraries multiple times across related processes
+        ProcessMemorySummary s = analyzeSinglePid(p, usePSS);
+        total.pvt += s.pvt;
+        total.stk += s.stk;
+        total.img += s.img;
+        total.map += s.map;
+    }
+
+    total.total = total.pvt + total.stk + total.img + total.map;
+    return total;
 }
 
-// Converts pointer to hexadecimal string
-QString MemoryAnalyzer::toHex(LPCVOID ptr) const {
-    return QString("0x%1").arg(reinterpret_cast<uintptr_t>(ptr), 16, 16, QChar('0')).toUpper();
-}
+// Get all the PIDs related to the selected process
+// We check the source file and then see all the processes originating from thier
+QList<ProcessID> MemoryAnalyzer::findRelatedPids(ProcessID pid)
+{
+    if (pid <= 0) {
+        return QList<ProcessID>();
+    }
 
-// Windows manages stacks using Guard Page (it is at its tip),
-// so if a guard page is present, the region must be a stack.
-bool MemoryAnalyzer::isStack(const MEMORY_BASIC_INFORMATION& mbi) const {
-    return (mbi.Protect & PAGE_GUARD);
+    QString targetExe = getExePath(pid);
+    if (targetExe.isEmpty()) {
+        return { pid };
+    }
+
+    QList<ProcessID> result;
+    QDir procDir("/proc");
+
+    if (!procDir.exists()) {
+        qWarning() << "Cannot access /proc directory";
+        return { pid };
+    }
+
+    QStringList entries = procDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+
+    for (const QString &entry : std::as_const(entries)) {
+        bool ok;
+        int otherPid = entry.toInt(&ok);
+
+        if (!ok || otherPid <= 0) continue;
+
+        QString otherExe = getExePath(otherPid);
+        if (!otherExe.isEmpty() && otherExe == targetExe) {
+            result.append(otherPid);
+        }
+    }
+
+    // Ensure we at least have the original PID
+    if (result.isEmpty()) {
+        result.append(pid);
+    }
+
+    return result;
 }

@@ -1,62 +1,100 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <windows.h>
 #include <QMainWindow>
-#include <QMainWindow>
-#include <QLineEdit>
-#include <QVector>
-#include <QString>
 #include <QTimer>
+#include <QLabel>
 #include <QStringListModel>
 #include <QCompleter>
-#include <QLabel>
+#include <QFutureWatcher>
+#include <QTableWidget>
+#include <QScopedPointer>
+#include "memoryanalyzer.h"
 #include "memorybar.h"
-
-struct ProcessInfo {
-    QString name;
-    int pid;
-};
-
-struct MemoryStats {
-    long pvt = 0, stk = 0, img = 0, map = 0, total = 0;
-};
-
-QVector<ProcessInfo> getRunningProcesses();
-
-void updateMemoryInfo(DWORD pid, long &pvt, long &stk, long &img, long &map);
+#include "portmanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
+using ProcessID = int;
+
+enum AnalysisMode {
+    SingleThreadMode = 0,
+    ApplicationGroupMode,
+    MultiThreadMode
+};
+
+struct LastStats {
+    long pvt = 0;
+    long stk = 0;
+    long img = 0;
+    long map = 0;
+    long total = 0;
+};
+
+struct ProcessInfo {
+    QString name;
+    ProcessID pid;
+};
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
 
 private slots:
-    void validatePidInput();
-    void resolvePidFromInput();
-    void refreshProcessList();
+    // --- UI  ---
     void onScanClicked();
+    void onAnalysisModeChanged(int index);
+    void resolvePidFromInput();
+
+    // --- Port management ---
+    void onKillPortProcess();
+    void onPortTableSelectionChanged();
+
+    // --- Helpers ---
+    void refreshProcessList();
+    void refreshPortList();
+    void setupPortTable();
+    QString formatMemory(qint64 kb) const;
+    void updateUIWithStats(const ProcessMemorySummary& s);
     void updateChangeLabel(QLabel* label, long current, long previous);
 
+    // --- Async analysis result handlers ---
+    void handleSingleAnalysisResult();
+    void handleMultiAnalysisResult();
+
 private:
-    Ui::MainWindow *ui;
+    QScopedPointer<Ui::MainWindow> ui;
 
-    MemoryStats lastStats;
-    int lastAnalyzedPID = -1;
-
-    MemoryBar* memoryBar = nullptr;
+    // --- Process Selection ---
     QVector<ProcessInfo> processCache;
-    QCompleter* processCompleter = nullptr;
     QStringListModel* processModel = nullptr;
+    QCompleter* processCompleter = nullptr;
+    ProcessID currentPID = 0;
+    AnalysisMode currentMode = SingleThreadMode;
+
+    // --- Memory Visualization ---
+    MemoryBar* memoryBar = nullptr;
+    LastStats lastStats;
+
+    // --- Timers ---
     QTimer* processRefreshTimer = nullptr;
-    int currentPID = -1;
+    QTimer* portRefreshTimer = nullptr;
+
+    // --- Port Management ---
+    PortManager* portManager = nullptr;
+
+    // --- Future Watchers ---
+    QFutureWatcher<ProcessMemorySummary>* singleAnalysisWatcher = nullptr;
+    QFutureWatcher<ProcessMemorySummary>* multiAnalysisWatcher = nullptr;
+
+    // --- Helper methods ---
+    void cleanupWatchers();
 };
 
 #endif // MAINWINDOW_H

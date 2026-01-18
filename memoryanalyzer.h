@@ -1,33 +1,44 @@
 #ifndef MEMORYANALYZER_H
-#define MEMORYANAL_H
+#define MEMORYANALYZER_H
 
-#include <windows.h>
 #include <QString>
 #include <QList>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QJsonDocument>
+#include <QMap>
+#include <QMetaType>
 
-struct MemoryRegion {
-    QString type;
-    QString base;
-    long size_kb;
+typedef int ProcessID;
+
+// Holds all memory of a single process (in KB)
+struct ProcessMemorySummary {
+    ProcessID pid = 0;
+    QString processName;
+    long pvt = 0;   // Private or Heap memory
+    long stk = 0;   // Stack memory
+    long img = 0;   // Executable images and shared libraries (.so)
+    long map = 0;   // Memory mapped files
+    long total = 0; // Total
 };
 
-class MemoryAnalyzer {
+// Static only, only utility class no instances
+class MemoryAnalyzer
+{
 public:
-    explicit MemoryAnalyzer(DWORD processID);
-    void analyze();
+    // Main Analysis
+    static ProcessMemorySummary analyzeSinglePid(ProcessID pid, bool usePSS = false);
+    static ProcessMemorySummary analyzeApplication(ProcessID rootPid, bool usePSS = true);
 
-    QString toJsonString() const;
-    QJsonObject toJsonObject() const;
+    // Helper Functions
+    static QString getExePath(ProcessID pid);
+    static QString getProcessName(ProcessID pid);
+    static QList<ProcessID> findRelatedPids(ProcessID pid);
 
 private:
-    DWORD m_pid;
-    QList<MemoryRegion> m_regions;
-
-    QString toHex(LPCVOID ptr) const;
-    bool isStack(const MEMORY_BASIC_INFORMATION& mbi) const;
+    MemoryAnalyzer() = delete;
+    ~MemoryAnalyzer() = delete;
+    MemoryAnalyzer(const MemoryAnalyzer&) = delete;
+    MemoryAnalyzer& operator=(const MemoryAnalyzer&) = delete;
 };
+
+Q_DECLARE_METATYPE(ProcessMemorySummary)
 
 #endif // MEMORYANALYZER_H

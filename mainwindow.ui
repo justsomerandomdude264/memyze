@@ -6,172 +6,838 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>450</height>
+    <width>1100</width>
+    <height>700</height>
    </rect>
   </property>
-
-  <property name="windowTitle">
-   <string>Memyze</string>
+  <property name="minimumSize">
+   <size>
+    <width>900</width>
+    <height>600</height>
+   </size>
   </property>
-
-  <!-- ===================== GLOBAL DARK STYLE ===================== -->
+  <property name="windowTitle">
+   <string>Memyze - Process &amp; Memory Analyzer</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">
-    QMainWindow { background-color: #121212; }
+/* Main Window - Modern Dark Theme */
+QMainWindow {
+    background-color: #1e1e1e;
+}
 
-    QLabel {
-        font-family: Consolas;
-        color: #e6e6e6;
-    }
+/* Tab Widget */
+QTabWidget::pane {
+    border: 1px solid #3e3e3e;
+    background-color: #1e1e1e;
+    border-radius: 4px;
+}
 
-    QLabel#methodLabel { color: #9aa0a6; }
+QTabBar::tab {
+    background-color: #2d2d2d;
+    color: #cccccc;
+    padding: 10px 20px;
+    margin-right: 2px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+    font-size: 13px;
+}
 
-    QLineEdit, QComboBox {
-        background-color: #1e1e1e;
-        border: 1px solid #2c2c2c;
-        border-radius: 6px;
-        padding: 6px;
-        color: #e6e6e6;
-        font-family: Consolas;
-    }
+QTabBar::tab:selected {
+    background-color: #0e639c;
+    color: white;
+    font-weight: bold;
+}
 
-    QLineEdit:focus, QComboBox:focus {
-        border: 1px solid #0a84ff;
-    }
+QTabBar::tab:hover:!selected {
+    background-color: #3e3e3e;
+}
 
-    QPushButton {
-        background-color: #0a84ff;
-        color: white;
-        border-radius: 6px;
-        padding: 6px 14px;
-    }
+/* Labels */
+QLabel {
+    color: #cccccc;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+    font-size: 13px;
+}
 
-    QPushButton:hover { background-color: #006edc; }
-    QPushButton:pressed { background-color: #005bb5; }
+QLabel#sectionTitle {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    padding: 5px 0px;
+}
 
-    QFrame[frameShape="4"] { color: #2c2c2c; }
+QLabel#subtitle {
+    color: #888888;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* Input Fields */
+QLineEdit, QComboBox {
+    background-color: #2d2d2d;
+    border: 1px solid #3e3e3e;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, monospace;
+    font-size: 13px;
+    selection-background-color: #0e639c;
+}
+
+QLineEdit:focus, QComboBox:focus {
+    border: 1px solid #0e639c;
+    background-color: #252525;
+}
+
+QLineEdit:hover, QComboBox:hover {
+    border: 1px solid #505050;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    image: url(:/icons/down-arrow.png);
+    width: 12px;
+    height: 12px;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #0e639c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #1177bb;
+}
+
+QPushButton:pressed {
+    background-color: #0d5689;
+}
+
+QPushButton:disabled {
+    background-color: #3e3e3e;
+    color: #666666;
+}
+
+QPushButton#killPortButton {
+    background-color: #c42b1c;
+}
+
+QPushButton#killPortButton:hover {
+    background-color: #e81123;
+}
+
+QPushButton#killPortButton:pressed {
+    background-color: #a21919;
+}
+
+QPushButton#refreshButton {
+    background-color: #107c10;
+}
+
+QPushButton#refreshButton:hover {
+    background-color: #13a313;
+}
+
+/* Table Widget */
+QTableWidget {
+    background-color: #252525;
+    border: 1px solid #3e3e3e;
+    border-radius: 4px;
+    gridline-color: #3e3e3e;
+    color: #cccccc;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, monospace;
+    font-size: 12px;
+}
+
+QTableWidget::item {
+    padding: 5px;
+}
+
+QTableWidget::item:selected {
+    background-color: #0e639c;
+    color: white;
+}
+
+QTableWidget::item:hover {
+    background-color: #2d2d2d;
+}
+
+QHeaderView::section {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    padding: 8px;
+    border: none;
+    border-bottom: 2px solid #0e639c;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+QTableWidget QTableCornerButton::section {
+    background-color: #2d2d2d;
+    border: none;
+}
+
+/* Checkboxes */
+QCheckBox {
+    color: #cccccc;
+    spacing: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+    font-size: 13px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #3e3e3e;
+    border-radius: 3px;
+    background-color: #2d2d2d;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #0e639c;
+    border: 1px solid #0e639c;
+}
+
+QCheckBox::indicator:hover {
+    border: 1px solid #0e639c;
+}
+
+/* Group Boxes */
+QGroupBox {
+    border: 1px solid #3e3e3e;
+    border-radius: 4px;
+    margin-top: 12px;
+    padding-top: 12px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 5px;
+    color: #0e639c;
+}
+
+/* Scroll Bars */
+QScrollBar:vertical {
+    background-color: #1e1e1e;
+    width: 12px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #3e3e3e;
+    border-radius: 6px;
+    min-height: 20px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #505050;
+}
+
+QScrollBar:horizontal {
+    background-color: #1e1e1e;
+    height: 12px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #3e3e3e;
+    border-radius: 6px;
+    min-width: 20px;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    background: none;
+    border: none;
+}
+
+/* Status Bar */
+QStatusBar {
+    background-color: #252525;
+    color: #888888;
+    border-top: 1px solid #3e3e3e;
+    font-size: 11px;
+}
+
+/* Separators */
+QFrame[frameShape=&quot;4&quot;], QFrame[frameShape=&quot;5&quot;] {
+    color: #3e3e3e;
+    background-color: #3e3e3e;
+}
    </string>
   </property>
-
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="mainLayout">
-    <property name="spacing"><number>16</number></property>
-    <property name="leftMargin"><number>24</number></property>
-    <property name="topMargin"><number>24</number></property>
-    <property name="rightMargin"><number>24</number></property>
-    <property name="bottomMargin"><number>24</number></property>
-
-    <!-- ===================== TOP CONTROLS ===================== -->
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
-     <layout class="QHBoxLayout">
-      <item>
-       <layout class="QVBoxLayout">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="memoryTab">
+       <attribute name="title">
+        <string>Memory Analysis</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>16</number>
+        </property>
+        <property name="leftMargin">
+         <number>20</number>
+        </property>
+        <property name="topMargin">
+         <number>20</number>
+        </property>
+        <property name="rightMargin">
+         <number>20</number>
+        </property>
+        <property name="bottomMargin">
+         <number>20</number>
+        </property>
         <item>
-         <widget class="QLabel" name="methodLabel">
-          <property name="text"><string>Input Method</string></property>
-          <property name="font"><font><italic>true</italic></font></property>
+         <widget class="QGroupBox" name="controlsGroup">
+          <property name="title">
+           <string>Analysis Controls</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="spacing">
+              <number>12</number>
+             </property>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_4">
+               <property name="spacing">
+                <number>6</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_2">
+                 <property name="text">
+                  <string>Analysis Mode</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="analysisModeCombo">
+                 <property name="minimumSize">
+                  <size>
+                   <width>200</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_5">
+               <property name="spacing">
+                <number>6</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_3">
+                 <property name="text">
+                  <string>Input Method</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="modeComboBox">
+                 <property name="minimumSize">
+                  <size>
+                   <width>200</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Process Name</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>PID Number</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QStackedWidget" name="stackedWidget">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <widget class="QWidget" name="page">
+                <layout class="QVBoxLayout" name="verticalLayout_6">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_4">
+                   <property name="text">
+                    <string>Process Name</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="processNameLineEdit">
+                   <property name="placeholderText">
+                    <string>Start typing process name...</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="page_2">
+                <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_5">
+                   <property name="text">
+                    <string>Process ID</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="pidLineEdit">
+                   <property name="placeholderText">
+                    <string>Enter PID number...</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <property name="spacing">
+                <number>6</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="scanButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>120</width>
+                   <height>36</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>SCAN</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="modeComboBox">
-          <item><property name="text"><string>Observe Running Program</string></property></item>
-          <item><property name="text"><string>Enter PID Manually</string></property></item>
+         <widget class="QLabel" name="infoLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>-apple-system</family>
+            <pointsize>-1</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Ready to Analyze</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="memoryBarPlaceholder" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>80</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="statsGroup">
+          <property name="title">
+           <string>Memory Statistics</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout">
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="topMargin">
+            <number>16</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <property name="bottomMargin">
+            <number>16</number>
+           </property>
+           <property name="horizontalSpacing">
+            <number>24</number>
+           </property>
+           <property name="verticalSpacing">
+            <number>12</number>
+           </property>
+           <item row="0" column="1">
+            <widget class="QLabel" name="label_7">
+             <property name="font">
+              <font>
+               <family>-apple-system</family>
+               <pointsize>-1</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>CHANGE (Δ)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="font">
+              <font>
+               <family>-apple-system</family>
+               <pointsize>-1</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Total Memory</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="totalChangeLabel">
+             <property name="font">
+              <font>
+               <family>-apple-system</family>
+               <pointsize>-1</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>Private</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="pvtChangeLabel">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string>Stack</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="stkChangeLabel">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>Image</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLabel" name="imgChangeLabel">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_12">
+             <property name="text">
+              <string>Mapped</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLabel" name="mapChangeLabel">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
-      </item>
-
-      <item>
-       <widget class="QStackedWidget" name="stackedWidget">
-        <widget class="QWidget">
-         <layout class="QVBoxLayout">
-          <item>
-           <widget class="QLineEdit" name="processNameLineEdit">
-            <property name="placeholderText">
-             <string>Type process name (e.g. chrome.exe)</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget">
-         <layout class="QVBoxLayout">
-          <item>
-           <widget class="QLineEdit" name="pidLineEdit">
-            <property name="placeholderText">
-             <string>Enter PID number...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-      </item>
-
-      <item>
-       <widget class="QPushButton" name="scanButton">
-        <property name="text"><string>SCAN NOW</string></property>
-        <property name="font"><font><bold>true</bold></font></property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-
-    <item>
-     <widget class="Line">
-      <property name="orientation"><enum>Qt::Horizontal</enum></property>
+      </widget>
+      <widget class="QWidget" name="portTab">
+       <attribute name="title">
+        <string>Port Manager</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_9">
+        <property name="spacing">
+         <number>16</number>
+        </property>
+        <property name="leftMargin">
+         <number>20</number>
+        </property>
+        <property name="topMargin">
+         <number>20</number>
+        </property>
+        <property name="rightMargin">
+         <number>20</number>
+        </property>
+        <property name="bottomMargin">
+         <number>20</number>
+        </property>
+        <item>
+         <widget class="QGroupBox" name="portControlsGroup">
+          <property name="title">
+           <string>Port Controls</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="portRefreshButton">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>36</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>🔄 Refresh Ports</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="killPortButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>36</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>⚠ Kill Process</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="portAutoRefreshCheck">
+             <property name="text">
+              <string>Auto-refresh (3s)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="portCountLabel">
+             <property name="font">
+              <font>
+               <family>-apple-system</family>
+               <pointsize>-1</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Total Ports: 0</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="portStatusLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>-apple-system</family>
+            <pointsize>-1</pointsize>
+            <italic>true</italic>
+           </font>
+          </property>
+          <property name="text">
+           <string>Click 'Refresh Ports' to scan for open ports</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="portTableWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+          </property>
+          <property name="sortingEnabled">
+           <bool>true</bool>
+          </property>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>Port</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Protocol</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>State</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>PID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Process Name</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Local Address</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="font">
+           <font>
+            <family>-apple-system</family>
+            <pointsize>-1</pointsize>
+            <italic>true</italic>
+           </font>
+          </property>
+          <property name="text">
+           <string>Select a row and click 'Kill Process' to free up a port instantly</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
-
-    <!-- ===================== STATUS ===================== -->
-    <item>
-     <widget class="QLabel" name="infoLabel">
-      <property name="text"><string>Ready to Analyze</string></property>
-      <property name="alignment"><set>Qt::AlignCenter</set></property>
-      <property name="font"><font><bold>true</bold></font></property>
-     </widget>
-    </item>
-
-    <!-- ===================== MEMORY GRAPH ===================== -->
-    <item>
-     <widget class="QWidget" name="memoryBarPlaceholder" native="true"/>
-    </item>
-
-    <!-- ===================== COMPACT DELTA TABLE ===================== -->
-    <item>
-     <layout class="QGridLayout" name="deltaGrid">
-      <property name="horizontalSpacing"><number>20</number></property>
-      <property name="verticalSpacing"><number>8</number></property>
-
-      <item row="0" column="1">
-       <widget class="QLabel">
-        <property name="text"><string>Δ CHANGE</string></property>
-        <property name="font"><font><bold>true</bold></font></property>
-        <property name="alignment"><set>Qt::AlignLeft</set></property>
-       </widget>
-      </item>
-
-      <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Total</string></property></widget></item>
-      <item row="1" column="1"><widget class="QLabel" name="totalChangeLabel"/></item>
-
-      <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Private</string></property></widget></item>
-      <item row="2" column="1"><widget class="QLabel" name="pvtChangeLabel"/></item>
-
-      <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Stack</string></property></widget></item>
-      <item row="3" column="1"><widget class="QLabel" name="stkChangeLabel"/></item>
-
-      <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Image</string></property></widget></item>
-      <item row="4" column="1"><widget class="QLabel" name="imgChangeLabel"/></item>
-
-      <item row="5" column="0"><widget class="QLabel"><property name="text"><string>Mapped</string></property></widget></item>
-      <item row="5" column="1"><widget class="QLabel" name="mapChangeLabel"/></item>
-     </layout>
-    </item>
-
    </layout>
   </widget>
-
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
