@@ -7,7 +7,7 @@
 
 Memyze helps developers understand how their applications consume memory and which ports they occupy, making debugging, optimization, and system monitoring easier.
 
-[Toturial/Demo](https://github.com/justsomerandomdude264/memyze/blob/main/media/usage.mkv)
+![Toturial/Demo](media/usage.gif)
 
 ---
 
@@ -81,3 +81,4 @@ This will add Memyze to your application launcher for easy access.
 Support needed to make windows and macOS compatible version, as they use different types of process management and have a different overall environment.
 
 ---
+
