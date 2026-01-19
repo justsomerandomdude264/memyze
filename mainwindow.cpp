@@ -11,6 +11,7 @@
 #include <QFutureWatcher>
 #include <QtConcurrent>
 #include <QTimer>
+#include <QIcon>
 #include <QVBoxLayout>
 #include <QCompleter>
 #include <QStringListModel>
@@ -22,6 +23,39 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    // Set Style to avoid ui errors when bundling
+    QApplication::setStyle("Fusion");
+    // Fix ComboBox popup styling in AppImage (for some reason it glitches out, due to the css not being inherited)
+    for (QComboBox* combo : findChildren<QComboBox*>()) {
+        combo->view()->window()->setStyleSheet(
+            "QWidget { background-color: #2d2d2d; border: 1px solid #0e639c; }"
+            );
+        combo->view()->setStyleSheet(
+            "QAbstractItemView { "
+            "background-color: #2d2d2d; "
+            "color: #ffffff; "
+            "selection-background-color: #0e639c; "
+            "border: none; "
+            "outline: none; "
+            "margin: 0px; "
+            "padding: 0px; "
+            "} "
+            "QAbstractItemView::item { "
+            "background-color: #2d2d2d; "
+            "color: #ffffff; "
+            "padding: 8px 12px; "
+            "border: none; "
+            "min-height: 25px; "
+            "} "
+            "QAbstractItemView::item:selected { "
+            "background-color: #0e639c; "
+            "} "
+            "QAbstractItemView::item:hover { "
+            "background-color: #3e3e3e; "
+            "}"
+            );
+    }
 
     // Set mode
     ui->modeComboBox->setCurrentIndex(0);
@@ -351,6 +385,8 @@ void MainWindow::setupPortTable() {
     ui->portTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->portTableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->portTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    ui->portTableWidget->setAlternatingRowColors(true); // Alternating colours for better readabilty
 
     ui->portTableWidget->setSortingEnabled(true); // Sorting enabled
 }

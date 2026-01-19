@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Memyze
+Comment=Memory and Port Analyzer
+Exec=memyze
+Icon=memyze
+StartupWMClass=memyze
+Terminal=false
+Categories=System;Monitor;
