@@ -423,6 +423,9 @@ void MainWindow::refreshPortList() {
         ui->portTableWidget->setItem(i, 3, protoItem);
     }
 
+    // Set total ports
+    ui->portCountLabel->setText(QString("Total Ports: %1").arg(ports.size()));
+
     // Reenable sorting
     ui->portTableWidget->setSortingEnabled(true);
 }

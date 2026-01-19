@@ -270,6 +270,15 @@ QPushButton#refreshButton:hover {
     background-color: #13a313;
 }
 
+/* Confirmation Box */
+QMessageBox QLabel {
+    color: black;
+}
+
+QMessageBox QPushButton {
+    color: black;
+}
+
 /* Table Widget */
 QTableWidget {
     background-color: #252525;
@@ -920,22 +929,12 @@ QFrame[frameShape=&quot;4&quot;], QFrame[frameShape=&quot;5&quot;] {
           </column>
           <column>
            <property name="text">
-            <string>State</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
             <string>PID</string>
            </property>
           </column>
           <column>
            <property name="text">
             <string>Process Name</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Local Address</string>
            </property>
           </column>
          </widget>
