@@ -58,13 +58,8 @@ Monitor and manage network ports directly from the application:
 
 ### Run the AppImage
 
-Download, make executable, and run:
-
-```bash
-wget https://github.com/justsomerandomdude264/memyze/raw/main/Memyze-x86_64.AppImage
-chmod +x Memyze-x86_64.AppImage
-./Memyze-x86_64.AppImage
-```
+Download, make the app image executable, and run:
+[Download the latest AppImage](https://github.com/justsomerandomdude264/memyze/releases/latest)
 
 ### AppImageLauncher Integration (Optional)
 
@@ -84,3 +79,4 @@ This will add Memyze to your application launcher for easy access.
 Support needed to make windows and macOS compatible version, as they use different types of process management and have a different overall environment.
 
 --- 
+
